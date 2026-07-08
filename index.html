@@ -49,7 +49,7 @@
     65%{transform:translate(-2px,-1px) rotate(-.2deg);} 80%{transform:translate(2px,1px) rotate(.15deg);}
     100%{transform:translate(0,0) rotate(0);}
   }
-  /* ★ 타이밍 튜닝 지점(CSS): animation-delay 숫자. JS의 SHAKE_AT/END_AT과 맞플 것 */
+  /* ★ 타이밍 튜닝 지점(CSS): animation-delay 숫자. JS의 SHAKE_AT/END_AT과 맞출 것 */
   [data-opening]{position:fixed; inset:0; z-index:9999; background:#17140f; overflow:hidden;
     display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
     animation:introLift .5s ease 1.9s forwards;}
@@ -686,7 +686,7 @@ class Component extends DCLogic {
     const stage = root.querySelector('[data-stage]');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 introLift delay(1.9s)와 SHAKE_AT를 맞플 것.
+    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 introLift delay(1.9s)와 SHAKE_AT를 맞출 것.
     const SHAKE_AT = 1900; // 개관(어둠 걷힘) 순간
     const END_AT   = 2400; // 오버레이 완전 제거 = 커버 리빌 시작
 
