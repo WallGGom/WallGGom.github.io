@@ -612,10 +612,12 @@ class Component extends DCLogic {
     this.setupCopy(root);
     this.setupMap(root);
     this.setupGuestbook(root);
+    this.setupOpening(root);
   }
 
   componentWillUnmount() {
     if (this._gbUnsub) this._gbUnsub();
+    if (this._openingSkips) this._openingSkips.forEach(([t, type]) => t.removeEventListener(type, this._openingSkipFn));
     (this._timers || []).forEach((t) => clearInterval(t));
     if (this._revealScroll) { window.removeEventListener('scroll', this._revealScroll, { capture: true }); window.removeEventListener('resize', this._revealScroll); }
     if (this._pageParallax) { window.removeEventListener('scroll', this._pageParallax, { capture: true }); window.removeEventListener('resize', this._pageParallax); }
@@ -675,6 +677,52 @@ class Component extends DCLogic {
     // late layout) — only reveals what's actually in view, preserving the
     // staged entrance for content further down the page.
     [120, 350, 800, 1500].forEach((ms) => setTimeout(check, ms));
+  }
+
+  // ---- opening intro (전시장 개관) lifecycle ----
+  setupOpening(root) {
+    const overlay = root.querySelector('[data-opening]');
+    if (!overlay) return;
+    const stage = root.querySelector('[data-stage]');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 introLift delay(1.9s)와 SHAKE_AT를 맞플 것.
+    const SHAKE_AT = 1900; // 개관(어둠 걷힘) 순간
+    const END_AT   = 2400; // 오버레이 완전 제거 = 커버 리빌 시작
+
+    const el = document.documentElement;
+    const prevOverflow = el.style.overflow;
+    if (!reduce) el.style.overflow = 'hidden'; // 스크롤 잠금
+
+    // 스킵 리스너: 스크롤이 잠겨도 동작하도록 wheel/touchmove/keydown/pointerdown 사용
+    const skips = [];
+    const bind = (t, type) => { t.addEventListener(type, onSkip, { passive: true }); skips.push([t, type]); };
+
+    let done = false;
+    const finish = () => {
+      if (done) return; done = true;
+      overlay.classList.add('io-done');
+      el.style.overflow = prevOverflow; // 스크롤 잠금 해제
+      skips.forEach(([t, type]) => t.removeEventListener(type, onSkip));
+      if (this._revealKick) this._revealKick(); // 커버 리빌 시작
+    };
+    function onSkip() { finish(); }
+
+    if (reduce) { finish(); return; } // 동작 줄이기: 즉시 커버
+
+    const shake = () => {
+      if (stage) {
+        stage.classList.add('io-shake');
+        this._timers.push(setTimeout(() => stage.classList.remove('io-shake'), 700));
+      }
+      if (navigator.vibrate) { try { navigator.vibrate([20, 40, 20]); } catch (e) {} }
+    };
+
+    bind(window, 'wheel'); bind(window, 'touchmove'); bind(window, 'keydown'); bind(overlay, 'pointerdown');
+    this._timers.push(setTimeout(shake, SHAKE_AT));
+    this._timers.push(setTimeout(finish, END_AT));
+    this._openingSkips = skips; // unmount 정리용
+    this._openingSkipFn = onSkip;
   }
 
   // ---- page-scroll parallax for section photos ----
