@@ -672,11 +672,11 @@ class Component extends DCLogic {
     window.addEventListener('scroll', onScroll, { passive: true, capture: true });
     window.addEventListener('resize', onScroll);
     this._revealScroll = onScroll;
-    requestAnimationFrame(check);
-    // re-run the in-view check across load milestones (fonts/images settling,
-    // late layout) — only reveals what's actually in view, preserving the
-    // staged entrance for content further down the page.
-    [120, 350, 800, 1500].forEach((ms) => setTimeout(check, ms));
+    // 인트로(전시장 개관)가 끝난 뒤 커버가 순차로 드러나도록, 초기 리빌을
+    // setupOpening.finish()가 호출하는 _revealKick으로 넘긴다.
+    this._revealKick = () => { check(); [200, 600, 1200].forEach((ms) => setTimeout(check, ms)); };
+    // 안전장치: 인트로 로직이 어떤 이유로 실패해도 콘텐츠가 숨은 채 멈추지 않게.
+    this._timers.push(setTimeout(() => { if (this._revealKick) this._revealKick(); }, 3000));
   }
 
   // ---- opening intro (전시장 개관) lifecycle ----
