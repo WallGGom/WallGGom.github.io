@@ -37,6 +37,43 @@
   [data-wall]::-webkit-scrollbar-track{background:transparent;}
   @keyframes floatHint{0%,100%{transform:translateY(0);opacity:.55;}50%{transform:translateY(7px);opacity:1;}}
   @keyframes grainShift{0%{transform:translate(0,0);}100%{transform:translate(-4%,-3%);}}
+  /* ---- gallery opening intro (전시장 개관) ---- */
+  @keyframes introSpotlight{from{opacity:0; transform:translate(-50%,-50%) scale(.7);}to{opacity:1; transform:translate(-50%,-50%) scale(1);}}
+  @keyframes introLine{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+  @keyframes introFadeUp{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
+  @keyframes introLetter{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+  @keyframes introLift{from{opacity:1;}to{opacity:0; transform:scale(1.06);}}
+  @keyframes introShake{
+    10%{transform:translate(-3px,2px) rotate(-.4deg);} 20%{transform:translate(4px,-2px) rotate(.4deg);}
+    35%{transform:translate(-4px,1px) rotate(-.3deg);} 50%{transform:translate(3px,2px) rotate(.3deg);}
+    65%{transform:translate(-2px,-1px) rotate(-.2deg);} 80%{transform:translate(2px,1px) rotate(.15deg);}
+    100%{transform:translate(0,0) rotate(0);}
+  }
+  /* ★ 타이밍 튜닝 지점(CSS): animation-delay 숫자. JS의 SHAKE_AT/END_AT과 맞플 것 */
+  [data-opening]{position:fixed; inset:0; z-index:9999; background:#17140f; overflow:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    animation:introLift .5s ease 1.9s forwards;}
+  [data-opening]::before{content:""; position:absolute; left:50%; top:38%; width:120vw; height:120vw;
+    transform:translate(-50%,-50%) scale(.7); pointer-events:none; opacity:0;
+    background:radial-gradient(circle at center, rgba(214,178,110,.30) 0%, rgba(214,178,110,.10) 30%, transparent 60%);
+    animation:introSpotlight .9s ease .3s forwards;}
+  [data-opening] .io-grain{position:absolute; inset:0; opacity:.5; pointer-events:none;
+    background-image:radial-gradient(rgba(120,100,70,.06) 1px,transparent 1px); background-size:4px 4px;}
+  [data-opening] .io-title{position:relative; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12px;
+    letter-spacing:.46em; color:#d6b26e; opacity:0; animation:introFadeUp .8s ease .8s forwards;}
+  [data-opening] .io-title.io-split{opacity:1; animation:none;}
+  [data-opening] .io-title.io-split .io-ch{display:inline-block; opacity:0; animation:introLetter .5s ease forwards;}
+  [data-opening] .io-title.io-split .io-sp{display:inline-block; width:.5em;}
+  [data-opening] .io-line{position:relative; width:52px; height:1px; margin:16px 0 0; transform:scaleX(0);
+    background:linear-gradient(90deg,transparent,#d6b26e,transparent); animation:introLine .6s ease .9s forwards;}
+  [data-opening] .io-names{position:relative; margin-top:18px; font-family:'Gowun Batang',serif;
+    font-size:22px; color:#efe6d4; opacity:0; animation:introFadeUp .8s ease 1.4s forwards;}
+  [data-opening].io-done{display:none;}
+  [data-stage].io-shake{animation:introShake .45s ease;}
+  @media (prefers-reduced-motion: reduce){
+    [data-opening]{animation:none; opacity:0; pointer-events:none;}
+    [data-stage].io-shake{animation:none;}
+  }
 </style>
 </helmet>
 <div ref="{{ setRoot }}" style="--accent:#b08d57; font-family:'Gothic A1',sans-serif; color:#2e2a24; background:#f4efe7; position:relative;">
@@ -53,7 +90,15 @@
   <!-- ambient wall grain -->
   <div aria-hidden="true" style="pointer-events:none; position:absolute; inset:0; opacity:.5; background-image:radial-gradient(rgba(120,100,70,.05) 1px,transparent 1px); background-size:4px 4px; z-index:0;"></div>
 
-  <div style="position:relative; z-index:1; max-width:680px; margin:0 auto;">
+  <!-- ============ OPENING INTRO (전시장 개관) ============ -->
+  <div data-opening aria-hidden="true">
+    <div class="io-grain"></div>
+    <div class="io-title">THE EXHIBITION OF TWO</div>
+    <div class="io-line"></div>
+    <div class="io-names">이종호 &amp; 김희정</div>
+  </div>
+
+  <div data-stage style="position:relative; z-index:1; max-width:680px; margin:0 auto;">
 
     <!-- ============ COVER ============ -->
     <section data-screen-label="Cover" style="min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:54px 26px 40px; text-align:center;">
