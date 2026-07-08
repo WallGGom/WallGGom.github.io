@@ -25,6 +25,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@200;300;400;500;700&display=swap" rel="stylesheet">
 <script src="./image-slot.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   *{box-sizing:border-box;}
   html,body{margin:0; overflow-x:hidden;}
@@ -568,6 +570,7 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount() {
+    if (this._gbUnsub) this._gbUnsub();
     (this._timers || []).forEach((t) => clearInterval(t));
     if (this._revealScroll) { window.removeEventListener('scroll', this._revealScroll, { capture: true }); window.removeEventListener('resize', this._revealScroll); }
     if (this._pageParallax) { window.removeEventListener('scroll', this._pageParallax, { capture: true }); window.removeEventListener('resize', this._pageParallax); }
@@ -855,22 +858,27 @@ class Component extends DCLogic {
     root.querySelectorAll('[data-map]').forEach((a) => { a.href = urls[a.dataset.map] || '#'; });
   }
 
-  // ---- guestbook (localStorage) ----
+  // ---- guestbook (Cloud Firestore) ----
   setupGuestbook(root) {
-    const KEY = 'wedding-guestbook-jongho-heejeong';
+    // ★★★ Firebase 콘솔 > 프로젝트 설정 > 내 앱 > SDK 구성에서 복사해서 붙여넣기 ★★★
+    const FIREBASE_CONFIG = {
+      apiKey: 'AIzaSyClAxFhWXGOcdvqHHAFPd_kegtUJgL6OV8',
+      authDomain: 'lheej-13195.firebaseapp.com',
+      projectId: 'lheej-13195',
+      storageBucket: 'lheej-13195.firebasestorage.app',
+      messagingSenderId: '1089804994244',
+      appId: '1:1089804994244:web:d0d73acbda030989db6b91'
+    };
+
     const nameEl = root.querySelector('[data-gb-name]');
     const msgEl = root.querySelector('[data-gb-msg]');
     const submit = root.querySelector('[data-gb-submit]');
     const list = root.querySelector('[data-gb-list]');
-    const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
-    const save = (arr) => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch (e) {} };
-    const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    const render = () => {
-      const arr = load();
-      if (!arr.length) {
-        list.innerHTML = '<div style="text-align:center; padding:26px 0; font-family:\'Gothic A1\'; font-weight:300; font-size:12.5px; color:#b3a691;">아직 남겨진 메시지가 없어요.<br>첫 번째 축하를 남겨주세요 ♥</div>';
-        return;
-      }
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const fmtDate = (d) => d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+    const emptyHtml = '<div style="text-align:center; padding:26px 0; font-family:\'Gothic A1\'; font-weight:300; font-size:12.5px; color:#b3a691;">아직 남겨진 메시지가 없어요.<br>첫 번째 축하를 남겨주세요 ♥</div>';
+    const render = (arr) => {
+      if (!arr.length) { list.innerHTML = emptyHtml; return; }
       list.innerHTML = arr.map((m) =>
         '<div style="background:#fff; border:1px solid #e7ddcc; padding:14px 16px; box-shadow:0 8px 18px -14px rgba(60,46,28,.4);">' +
           '<div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px;">' +
@@ -881,7 +889,7 @@ class Component extends DCLogic {
         '</div>'
       ).join('');
     };
-    submit.addEventListener('click', () => {
+    const validate = () => {
       const name = (nameEl.value || '').trim();
       const msg = (msgEl.value || '').trim();
       if (!name || !msg) {
@@ -889,17 +897,73 @@ class Component extends DCLogic {
         t.style.borderColor = '#c08a7a';
         setTimeout(() => { t.style.borderColor = '#ddd0bc'; }, 1200);
         t.focus();
-        return;
+        return null;
       }
-      const now = new Date();
-      const date = now.getFullYear() + '.' + String(now.getMonth() + 1).padStart(2, '0') + '.' + String(now.getDate()).padStart(2, '0');
-      const arr = load();
-      arr.unshift({ name, msg, date });
-      save(arr);
-      nameEl.value = ''; msgEl.value = '';
-      render();
+      return { name: name.slice(0, 12), msg: msg.slice(0, 120) };
+    };
+    const lockBtn = (locked) => {
+      submit.disabled = locked;
+      submit.style.opacity = locked ? '.55' : '1';
+      submit.textContent = locked ? '남기는 중…' : '방명록 남기기';
+    };
+
+    // Firebase SDK 로드 실패 또는 config 미설정 시 → localStorage 폴백 (로컬 미리보기용)
+    const useFirestore = typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('YOUR_') !== 0;
+
+    if (!useFirestore) {
+      const KEY = 'wedding-guestbook-jongho-heejeong';
+      const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } };
+      const save = (arr) => { try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch (e) {} };
+      submit.addEventListener('click', () => {
+        const v = validate(); if (!v) return;
+        const arr = load();
+        arr.unshift({ name: v.name, msg: v.msg, date: fmtDate(new Date()) });
+        save(arr);
+        nameEl.value = ''; msgEl.value = '';
+        render(arr);
+      });
+      render(load());
+      return;
+    }
+
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.firestore();
+    const col = db.collection('guestbook');
+
+    // 실시간 구독: 다른 하객의 새 메시지도 즉시 반영
+    this._gbUnsub = col.orderBy('createdAt', 'desc').limit(200).onSnapshot(
+      (snap) => {
+        const arr = snap.docs.map((doc) => {
+          const d = doc.data();
+          const ts = typeof d.createdAt === 'number' ? new Date(d.createdAt) : new Date();
+          return { name: d.name || '', msg: d.msg || '', date: fmtDate(ts) };
+        });
+        render(arr);
+      },
+      (err) => {
+        console.error('guestbook load error:', err);
+        list.innerHTML = '<div style="text-align:center; padding:26px 0; font-family:\'Gothic A1\'; font-weight:300; font-size:12.5px; color:#b3a691;">방명록을 불러오지 못했어요.<br>잠시 후 다시 시도해주세요.</div>';
+      }
+    );
+
+    submit.addEventListener('click', async () => {
+      const v = validate(); if (!v) return;
+      lockBtn(true);
+      try {
+        await col.add({
+          name: v.name,
+          msg: v.msg,
+          createdAt: Date.now()
+        });
+        nameEl.value = ''; msgEl.value = '';
+      } catch (err) {
+        console.error('guestbook write error:', err);
+        submit.textContent = '전송 실패 · 다시 시도';
+        setTimeout(() => { submit.textContent = '방명록 남기기'; }, 1600);
+      } finally {
+        lockBtn(false);
+      }
     });
-    render();
   }
 }
 </script>
