@@ -718,6 +718,21 @@ class Component extends DCLogic {
       if (navigator.vibrate) { try { navigator.vibrate([20, 40, 20]); } catch (e) {} }
     };
 
+    // 타이틀 글자 각인: 한 글자씩 stagger. 블록 페이드 대신 글자별 애니메이션으로 교체.
+    const titleEl = overlay.querySelector('.io-title');
+    if (titleEl) {
+      const text = titleEl.textContent;
+      titleEl.textContent = '';
+      titleEl.classList.add('io-split');
+      const BASE = 800, STEP = 45; // ms (★ 타이밍 튜닝: 첫 글자 지연 / 글자 간격)
+      [...text].forEach((ch, i) => {
+        const span = document.createElement('span');
+        if (ch === ' ') { span.className = 'io-sp'; }
+        else { span.className = 'io-ch'; span.textContent = ch; span.style.animationDelay = (BASE + i * STEP) + 'ms'; }
+        titleEl.appendChild(span);
+      });
+    }
+
     bind(window, 'wheel'); bind(window, 'touchmove'); bind(window, 'keydown'); bind(overlay, 'pointerdown');
     this._timers.push(setTimeout(shake, SHAKE_AT));
     this._timers.push(setTimeout(finish, END_AT));
