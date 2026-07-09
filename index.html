@@ -157,8 +157,8 @@
         더없는 기쁨으로 간직하겠습니다.
       </p>
       <div data-reveal data-reveal-delay="160" style="margin-top:42px; padding-top:32px; border-top:1px solid #e0d6c4; text-align:center; font-family:'Gothic A1'; font-weight:300; font-size:14px; line-height:2.2; color:#5a5246;">
-        <div>이○○ · 이○○ <span style="color:#9a8c76;">의 아들</span> &nbsp;<b style="font-weight:500;">종호</b></div>
-        <div>김○○ · 김○○ <span style="color:#9a8c76;">의 딸</span> &nbsp;<b style="font-weight:500;">희정</b></div>
+        <div>이순규 · 장일란 <span style="color:#9a8c76;">의 아들</span> &nbsp;<b style="font-weight:500;">종호</b></div>
+        <div>김주헌 · 유정연 <span style="color:#9a8c76;">의 딸</span> &nbsp;<b style="font-weight:500;">희정</b></div>
       </div>
     </section>
 
@@ -453,7 +453,7 @@
       <div data-reveal data-reveal-delay="60" style="text-align:center;">
         <div style="font-family:'Gowun Batang',serif; font-size:19px; color:#2e2a24;">호텔 인터불고 대구 · 파크빌리지</div>
         <div style="font-family:'Gothic A1'; font-weight:300; font-size:13px; color:#6b6253; margin-top:9px; letter-spacing:.02em;">대구 수성구 팔현길 212</div>
-        <div style="font-family:'Gothic A1'; font-weight:300; font-size:12px; color:#9a8c76; margin-top:5px;">웨딩예약팀 053-602-7215</div>
+        <div style="font-family:'Gothic A1'; font-weight:300; font-size:12px; color:#9a8c76; margin-top:5px;">053-602-7114</div>
       </div>
 
       <div data-reveal data-reveal-delay="120" style="display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:26px;">
@@ -464,12 +464,12 @@
 
       <div data-reveal data-reveal-delay="160" style="margin-top:26px; border-top:1px solid #e0d6c4; padding-top:22px; font-family:'Gothic A1'; font-weight:300; font-size:13px; line-height:1.9; color:#5a5246;">
         <div style="display:flex; gap:12px; margin-bottom:12px;">
-          <span style="flex:0 0 52px; font-weight:500; color:var(--accent,#b08d57); letter-spacing:.08em;">자가용</span>
+          <span style="flex:0 0 60px; font-weight:500; color:var(--accent,#b08d57); letter-spacing:.08em;">자가용</span>
           <span style="flex:1; word-break:keep-all;">'호텔 인터불고 대구' 검색 · 호텔 내 넉넉한 주차 공간 이용 가능</span>
         </div>
         <div style="display:flex; gap:12px;">
-          <span style="flex:0 0 52px; font-weight:500; color:var(--accent,#b08d57); letter-spacing:.08em;">대중교통</span>
-          <span style="flex:1; word-break:keep-all;">지하철 2호선 만촌역 하차 후 택시 약 10분</span>
+          <span style="flex:0 0 60px; font-weight:500; color:var(--accent,#b08d57); letter-spacing:.08em;">대중교통</span>
+          <span style="flex:1; word-break:keep-all;">1호선 아양교역 하차 > 802번 버스 환승 > 망우공원건너 하차 > 도보 7분<br/>2호선 만촌역 하자 > 848번 버스 환승 > 인터불고호텔앞 하차 > 도보 1분<br/>동대구역복합환승센터건너 651번 승차 > 인터불고호텔앞 하차 > 도보 1분</span>
         </div>
       </div>
     </section>
@@ -957,11 +957,10 @@ class Component extends DCLogic {
 
   // ---- map links ----
   setupMap(root) {
-    const q = encodeURIComponent('호텔 인터불고 대구 파크빌리지');
     const urls = {
-      naver: 'https://map.naver.com/p/search/' + q,
-      kakao: 'https://map.kakao.com/?q=' + encodeURIComponent('호텔 인터불고 대구'),
-      google: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('호텔 인터불고 대구 팔현길 212')
+      naver: 'https://naver.me/xBwWxXft',
+      kakao: 'https://map.kakao.com/?urlX=874991.0000000675&urlY=663028.9999999979&urlLevel=3&itemId=53591254&q=%EB%B0%94%EB%A5%B4%EB%AF%B8%ED%98%B8%ED%85%94%EC%9D%B8%ED%84%B0%EB%B6%88%EA%B3%A0%20%EB%8C%80%EA%B5%AC%20%EC%9B%A8%EB%94%A9%ED%8C%8C%ED%81%AC%EB%B9%8C%EB%A6%AC%EC%A7%80&srcid=53591254&map_type=TYPE_MAP',
+      google: 'https://maps.app.goo.gl/LkvPBn1X5uoR3R8c7'
     };
     root.querySelectorAll('[data-map]').forEach((a) => { a.href = urls[a.dataset.map] || '#'; });
   }
