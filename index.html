@@ -37,37 +37,63 @@
   [data-wall]::-webkit-scrollbar-track{background:transparent;}
   @keyframes floatHint{0%,100%{transform:translateY(0);opacity:.55;}50%{transform:translateY(7px);opacity:1;}}
   @keyframes grainShift{0%{transform:translate(0,0);}100%{transform:translate(-4%,-3%);}}
-  /* ---- gallery opening intro (전시장 개관) ---- */
-  @keyframes introSpotlight{from{opacity:0; transform:translate(-50%,-50%) scale(.7);}to{opacity:1; transform:translate(-50%,-50%) scale(1);}}
+  /* ---- gallery opening intro v2: 커튼 언베일링 (전시장 개관) ---- */
+  @keyframes introGlow{from{opacity:0; transform:translate(-50%,-50%) scale(.65);}to{opacity:1; transform:translate(-50%,-50%) scale(1);}}
   @keyframes introLine{from{transform:scaleX(0);}to{transform:scaleX(1);}}
   @keyframes introFadeUp{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes introLetter{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
-  @keyframes introLift{from{opacity:1;}to{opacity:0; transform:scale(1.06); pointer-events:none;}}
+  @keyframes introShimmer{from{transform:translateX(-130%);}to{transform:translateX(130%);}}
+  @keyframes introStageOut{to{opacity:0;}}
+  @keyframes curtainOpenL{to{transform:translateX(-102%);}}
+  @keyframes curtainOpenR{to{transform:translateX(102%);}}
+  @keyframes introSeam{0%{opacity:0; width:2px; filter:blur(1px);} 18%{opacity:1; width:5px; filter:blur(1px);} 55%{opacity:.7; width:130px; filter:blur(34px);} 100%{opacity:0; width:240px; filter:blur(70px);}}
+  @keyframes introMote{0%{opacity:0; transform:translateY(24px) scale(.5);} 25%{opacity:.85;} 70%{opacity:.5;} 100%{opacity:0; transform:translateY(-70px) scale(1);}}
+  @keyframes introArm{to{pointer-events:none;}}
   @keyframes introShake{
     10%{transform:translate(-3px,2px) rotate(-.4deg);} 20%{transform:translate(4px,-2px) rotate(.4deg);}
     35%{transform:translate(-4px,1px) rotate(-.3deg);} 50%{transform:translate(3px,2px) rotate(.3deg);}
     65%{transform:translate(-2px,-1px) rotate(-.2deg);} 80%{transform:translate(2px,1px) rotate(.15deg);}
     100%{transform:translate(0,0) rotate(0);}
   }
-  /* ★ 타이밍 튜닝 지점(CSS): animation-delay 숫자. JS의 SHAKE_AT/END_AT과 맞출 것 */
-  [data-opening]{position:fixed; inset:0; z-index:9999; background:#17140f; overflow:hidden;
+  /* ★ 타이밍 튜닝 지점(CSS): 커튼 열림=2.6s. JS의 PART_AT/END_AT과 맞출 것 */
+  [data-opening]{position:fixed; inset:0; z-index:9999; background:transparent; overflow:hidden;
+    animation:introArm .01s linear 3s forwards;}
+  /* 커튼 두 폭 (벨벳) — 클라이맥스에 양옆으로 갈라짐 */
+  [data-opening] .io-curtain{position:absolute; top:0; bottom:0; width:52%; will-change:transform;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.55) 0, rgba(0,0,0,0) 13px, rgba(255,255,255,.028) 21px, rgba(0,0,0,0) 30px, rgba(0,0,0,.5) 43px),
+      linear-gradient(90deg, rgba(0,0,0,.5), rgba(255,255,255,.02) 55%, rgba(0,0,0,.55)),
+      radial-gradient(130% 70% at 50% 22%, rgba(214,178,110,.10), transparent 55%),
+      #17140f;}
+  [data-opening] .io-l{left:0; box-shadow:inset -22px 0 44px -22px rgba(0,0,0,.75); animation:curtainOpenL .95s cubic-bezier(.7,0,.18,1) 2.6s forwards;}
+  [data-opening] .io-r{right:0; box-shadow:inset 22px 0 44px -22px rgba(0,0,0,.75); animation:curtainOpenR .95s cubic-bezier(.7,0,.18,1) 2.6s forwards;}
+  [data-opening] .io-l::after{content:""; position:absolute; top:0; bottom:0; right:0; width:2px; background:linear-gradient(transparent, rgba(214,178,110,.55), transparent);}
+  [data-opening] .io-r::after{content:""; position:absolute; top:0; bottom:0; left:0; width:2px; background:linear-gradient(transparent, rgba(214,178,110,.55), transparent);}
+  /* 중앙 빛 틈 — 커튼 갈라질 때 빛이 쏟아짐 */
+  [data-opening] .io-seam{position:absolute; top:0; bottom:0; left:50%; width:3px; transform:translateX(-50%); z-index:3; pointer-events:none; opacity:0;
+    background:linear-gradient(transparent, rgba(214,178,110,.9), rgba(255,244,222,1), rgba(214,178,110,.9), transparent);
+    animation:introSeam 1.2s ease 2.5s forwards;}
+  /* 무대(콘텐츠 층) */
+  [data-opening] .io-inner{position:absolute; inset:0; z-index:2; pointer-events:none;
     display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    animation:introLift .5s ease 1.9s forwards;}
-  [data-opening]::before{content:""; position:absolute; left:50%; top:38%; width:120vw; height:120vw;
-    transform:translate(-50%,-50%) scale(.7); pointer-events:none; opacity:0;
-    background:radial-gradient(circle at center, rgba(214,178,110,.30) 0%, rgba(214,178,110,.10) 30%, transparent 60%);
-    animation:introSpotlight .9s ease .3s forwards;}
-  [data-opening] .io-grain{position:absolute; inset:0; opacity:.5; pointer-events:none;
-    background-image:radial-gradient(rgba(120,100,70,.06) 1px,transparent 1px); background-size:4px 4px;}
+    animation:introStageOut .55s ease 2.5s forwards;}
+  [data-opening] .io-glow{position:absolute; left:50%; top:40%; width:130vw; height:130vw; pointer-events:none; opacity:0;
+    transform:translate(-50%,-50%) scale(.65);
+    background:radial-gradient(circle at center, rgba(214,178,110,.32) 0%, rgba(214,178,110,.10) 30%, transparent 60%);
+    animation:introGlow 1s ease .3s forwards;}
+  [data-opening] .io-mote{position:absolute; border-radius:50%; pointer-events:none; opacity:0;
+    background:radial-gradient(rgba(255,244,222,.95), rgba(214,178,110,.35) 60%, transparent);}
   [data-opening] .io-title{position:relative; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12px;
     letter-spacing:.46em; color:#d6b26e; opacity:0; animation:introFadeUp .8s ease .8s forwards;}
   [data-opening] .io-title.io-split{opacity:1; animation:none;}
   [data-opening] .io-title.io-split .io-ch{display:inline-block; opacity:0; animation:introLetter .5s ease forwards;}
   [data-opening] .io-title.io-split .io-sp{display:inline-block; width:.5em;}
+  [data-opening] .io-title.io-split::after{content:""; position:absolute; top:-3px; bottom:-3px; left:-10px; right:-10px; pointer-events:none; mix-blend-mode:screen;
+    background:linear-gradient(105deg, transparent 38%, rgba(255,247,228,.85) 50%, transparent 62%); transform:translateX(-130%); animation:introShimmer 1s ease 1.05s forwards;}
   [data-opening] .io-line{position:relative; width:52px; height:1px; margin:16px 0 0; transform:scaleX(0);
-    background:linear-gradient(90deg,transparent,#d6b26e,transparent); animation:introLine .6s ease .9s forwards;}
+    background:linear-gradient(90deg,transparent,#d6b26e,transparent); animation:introLine .6s ease 1.4s forwards;}
   [data-opening] .io-names{position:relative; margin-top:18px; font-family:'Gowun Batang',serif;
-    font-size:22px; color:#efe6d4; opacity:0; animation:introFadeUp .8s ease 1.4s forwards;}
+    font-size:22px; color:#efe6d4; opacity:0; animation:introFadeUp .7s ease 1.7s forwards;}
   [data-opening].io-done{display:none;}
   [data-stage].io-shake{animation:introShake .45s ease;}
   @media (prefers-reduced-motion: reduce){
@@ -90,12 +116,17 @@
   <!-- ambient wall grain -->
   <div aria-hidden="true" style="pointer-events:none; position:absolute; inset:0; opacity:.5; background-image:radial-gradient(rgba(120,100,70,.05) 1px,transparent 1px); background-size:4px 4px; z-index:0;"></div>
 
-  <!-- ============ OPENING INTRO (전시장 개관) ============ -->
+  <!-- ============ OPENING INTRO (전시장 개관 · 커튼 언베일링) ============ -->
   <div data-opening aria-hidden="true">
-    <div class="io-grain"></div>
-    <div class="io-title">THE EXHIBITION OF TWO</div>
-    <div class="io-line"></div>
-    <div class="io-names">이종호 &amp; 김희정</div>
+    <div class="io-curtain io-l"></div>
+    <div class="io-curtain io-r"></div>
+    <div class="io-inner">
+      <div class="io-glow"></div>
+      <div class="io-title">THE EXHIBITION OF TWO</div>
+      <div class="io-line"></div>
+      <div class="io-names">이종호 &amp; 김희정</div>
+    </div>
+    <div class="io-seam"></div>
   </div>
 
   <div data-stage style="position:relative; z-index:1; max-width:680px; margin:0 auto;">
@@ -686,9 +717,9 @@ class Component extends DCLogic {
     const stage = root.querySelector('[data-stage]');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 introLift delay(1.9s)와 SHAKE_AT를 맞출 것.
-    const SHAKE_AT = 1900; // 개관(어둠 걷힘) 순간
-    const END_AT   = 2400; // 오버레이 완전 제거 = 커버 리빌 시작
+    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 커튼 열림 delay(2.6s)와 PART_AT를 맞출 것.
+    const PART_AT = 2600; // 커튼이 갈라지는 순간 = 흔들림 + 커버 등장
+    const END_AT  = 3550; // 커튼 완전히 열림 = 오버레이 제거
 
     const el = document.documentElement;
     const prevOverflow = el.style.overflow;
@@ -724,7 +755,7 @@ class Component extends DCLogic {
       const text = titleEl.textContent;
       titleEl.textContent = '';
       titleEl.classList.add('io-split');
-      const BASE = 800, STEP = 45; // ms (★ 타이밍 튜닝: 첫 글자 지연 / 글자 간격)
+      const BASE = 600, STEP = 38; // ms (★ 타이밍 튜닝: 첫 글자 지연 / 글자 간격)
       [...text].forEach((ch, i) => {
         const span = document.createElement('span');
         if (ch === ' ') { span.className = 'io-sp'; }
@@ -733,8 +764,23 @@ class Component extends DCLogic {
       });
     }
 
+    // 먼지 입자: 스포트라이트 속을 떠다니는 빛 알갱이 (순수 장식, JS 실패해도 커튼은 CSS로 열림)
+    const inner = overlay.querySelector('.io-inner');
+    if (inner) {
+      for (let i = 0; i < 9; i++) {
+        const m = document.createElement('div');
+        m.className = 'io-mote';
+        const sz = 3 + (i % 3) * 2;
+        m.style.cssText = 'width:' + sz + 'px; height:' + sz + 'px; left:' + (12 + (i * 79) % 76) + '%; top:' + (44 + (i % 3) * 8) + '%; filter:blur(.4px); animation:introMote ' + (2.6 + (i % 4) * 0.5) + 's ease-in-out ' + (0.3 + (i % 5) * 0.35) + 's infinite;';
+        inner.appendChild(m);
+      }
+    }
+
+    // 커튼이 갈라지는 순간: 화면 흔들림 + 진동 + 커버 리빌(틈으로 커버가 나타남)
+    const part = () => { shake(); if (this._revealKick) this._revealKick(); };
+
     bind(window, 'wheel'); bind(window, 'touchmove'); bind(window, 'keydown'); bind(overlay, 'pointerdown');
-    this._timers.push(setTimeout(shake, SHAKE_AT));
+    this._timers.push(setTimeout(part, PART_AT));
     this._timers.push(setTimeout(finish, END_AT));
     this._openingSkips = skips; // unmount 정리용
     this._openingSkipFn = onSkip;
@@ -1013,6 +1059,21 @@ class Component extends DCLogic {
       submit.style.opacity = locked ? '.55' : '1';
       submit.textContent = locked ? '남기는 중…' : '방명록 남기기';
     };
+    // 등록 성공 피드백 토스트 (하단 중앙에서 잠깐 떠오름)
+    const toast = (html) => {
+      let el = root.querySelector('[data-gb-toast]');
+      if (!el) {
+        el = document.createElement('div');
+        el.setAttribute('data-gb-toast', '');
+        el.style.cssText = "position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(14px); z-index:9998; background:#2e2a24; color:#f4efe7; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12.5px; letter-spacing:.02em; padding:11px 20px; border-radius:999px; box-shadow:0 14px 34px -12px rgba(0,0,0,.55); white-space:nowrap; opacity:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); pointer-events:none;";
+        root.appendChild(el);
+      }
+      el.innerHTML = html;
+      requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(-50%) translateY(0)'; });
+      clearTimeout(el._h);
+      el._h = setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(14px)'; }, 2200);
+    };
+    const OK_MSG = '축하 메시지가 등록되었어요 <span style="color:#d6b26e;">&#9829;</span>';
 
     // Firebase SDK 로드 실패 또는 config 미설정 시 → localStorage 폴백 (로컬 미리보기용)
     const useFirestore = typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('YOUR_') !== 0;
@@ -1028,6 +1089,7 @@ class Component extends DCLogic {
         save(arr);
         nameEl.value = ''; msgEl.value = '';
         render(arr);
+        toast(OK_MSG);
       });
       render(load());
       return;
@@ -1063,6 +1125,7 @@ class Component extends DCLogic {
           createdAt: Date.now()
         });
         nameEl.value = ''; msgEl.value = '';
+        toast(OK_MSG);
       } catch (err) {
         console.error('guestbook write error:', err);
         submit.textContent = '전송 실패 · 다시 시도';
