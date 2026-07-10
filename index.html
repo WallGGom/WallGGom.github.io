@@ -100,6 +100,16 @@
     [data-opening]{animation:none; opacity:0; pointer-events:none;}
     [data-stage].io-shake{animation:none;}
   }
+  /* ---- SD 도슨트 캐릭터 ---- */
+  @keyframes buddyBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  .io-buddy-wrap{opacity:0; transform:translateY(16px); transition:opacity .8s ease, transform .9s cubic-bezier(.2,.7,.2,1);}
+  .io-buddy-wrap.io-in{opacity:1; transform:translateY(0);}
+  .io-buddy{display:block; width:120px; height:auto; margin:0 auto; pointer-events:none; filter:drop-shadow(0 10px 14px rgba(60,46,28,.18));}
+  .io-buddy-wrap.io-in .io-buddy{animation:buddyBob 3.4s ease-in-out .6s infinite;}
+  @media (prefers-reduced-motion: reduce){
+    .io-buddy-wrap{transition:opacity .4s ease; transform:none;}
+    .io-buddy-wrap.io-in .io-buddy{animation:none;}
+  }
 </style>
 </helmet>
 <div ref="{{ setRoot }}" style="--accent:#b08d57; font-family:'Gothic A1',sans-serif; color:#2e2a24; background:#f4efe7; position:relative;">
@@ -155,7 +165,9 @@
       </div>
       <div data-reveal data-reveal-delay="320" style="font-family:'Gothic A1'; font-weight:300; font-size:12px; letter-spacing:.08em; color:#8a7d6b; margin-top:9px;">호텔 인터불고 대구 · 파크빌리지</div>
 
-      <div style="margin-top:46px; display:flex; flex-direction:column; align-items:center; gap:7px; animation:floatHint 2.4s ease-in-out infinite;">
+      <div class="io-buddy-wrap" style="margin-top:36px;"><img class="io-buddy" src="assets/sd-couple.png" alt="이종호 김희정 캐릭터"></div>
+
+      <div style="margin-top:24px; display:flex; flex-direction:column; align-items:center; gap:7px; animation:floatHint 2.4s ease-in-out infinite;">
         <span style="font-family:'Gothic A1'; font-weight:300; font-size:9.5px; letter-spacing:.34em; color:var(--accent,#b08d57);">SCROLL</span>
         <span style="width:1px; height:30px; background:linear-gradient(var(--accent,#b08d57),transparent);"></span>
       </div>
@@ -191,6 +203,8 @@
         <div>이순규 · 장일란 <span style="color:#9a8c76;">의 아들</span> &nbsp;<b style="font-weight:500;">종호</b></div>
         <div>김주헌 · 유정연 <span style="color:#9a8c76;">의 딸</span> &nbsp;<b style="font-weight:500;">희정</b></div>
       </div>
+
+      <div class="io-buddy-wrap" style="margin-top:44px;"><img class="io-buddy" src="assets/sd-couple.png" alt="이종호 김희정 캐릭터"></div>
     </section>
 
     <!-- ============ GALLERY 02 · 예식 안내 ============ -->
@@ -644,10 +658,12 @@ class Component extends DCLogic {
     this.setupMap(root);
     this.setupGuestbook(root);
     this.setupOpening(root);
+    this.setupBuddies(root);
   }
 
   componentWillUnmount() {
     if (this._gbUnsub) this._gbUnsub();
+    if (this._buddyObserver) this._buddyObserver.disconnect();
     if (this._openingSkips) this._openingSkips.forEach(([t, type]) => t.removeEventListener(type, this._openingSkipFn));
     (this._timers || []).forEach((t) => clearInterval(t));
     if (this._revealScroll) { window.removeEventListener('scroll', this._revealScroll, { capture: true }); window.removeEventListener('resize', this._revealScroll); }
@@ -784,6 +800,18 @@ class Component extends DCLogic {
     this._timers.push(setTimeout(finish, END_AT));
     this._openingSkips = skips; // unmount 정리용
     this._openingSkipFn = onSkip;
+  }
+
+  // ---- SD 도슨트: 스크롤 진입 시 등장 ----
+  setupBuddies(root) {
+    const buddies = [...root.querySelectorAll('.io-buddy-wrap')];
+    if (!buddies.length) return;
+    if (!('IntersectionObserver' in window)) { buddies.forEach((b) => b.classList.add('io-in')); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('io-in'); io.unobserve(e.target); } });
+    }, { threshold: 0.35 });
+    buddies.forEach((b) => io.observe(b));
+    this._buddyObserver = io;
   }
 
   // ---- page-scroll parallax for section photos ----
