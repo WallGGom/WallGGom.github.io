@@ -40,9 +40,10 @@
   /* ---- gallery opening intro v3: 타이포 마스크 줌 (숫자 속으로) ---- */
   @keyframes introFadeUp{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes introMetaOut{to{opacity:0;}}
-  @keyframes introPhoto{from{transform:scale(1.16);}to{transform:scale(1.02);}}
+  @keyframes introPhoto{from{transform:scale(1.16);}to{transform:scale(1.0);}}
   @keyframes introZoom{to{transform:scale(30);}}
   @keyframes introPlateFade{to{opacity:0;}}
+  @keyframes introDigitsIn{to{opacity:0;}}
   @keyframes introVeilOut{to{opacity:0;}}
   @keyframes introArm{to{pointer-events:none;}}
   @keyframes introShake{
@@ -51,12 +52,14 @@
     65%{transform:translate(-2px,-1px) rotate(-.2deg);} 80%{transform:translate(2px,1px) rotate(.15deg);}
     100%{transform:translate(0,0) rotate(0);}
   }
-  /* ★ 타이밍 튜닝 지점(CSS): 줌 시작=1.4s, 판 소멸=2.55s, 베일 아웃=2.7s. JS PART_AT=2600/END_AT=3450과 맞출 것 */
+  /* ★ 타이밍 튜닝 지점(CSS): 숫자 등장=.45s, 줌 시작=1.4s, 판 소멸=2.55s, 베일 아웃=3.05s(1.4s간). JS PART_AT=3000/END_AT=4500과 맞출 것 */
   [data-opening]{position:fixed; inset:0; z-index:9999; background:#f7f2ec; overflow:hidden;
-    animation:introVeilOut .75s ease 2.7s forwards, introArm .01s linear 3.45s forwards;}
+    animation:introVeilOut 1.4s ease 3.05s forwards, introArm .01s linear 4.5s forwards;}
   /* 숫자 구멍 너머로 비치는 사진 */
   [data-opening] .io-photo{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    transform:scale(1.16); animation:introPhoto 3s cubic-bezier(.2,.6,.2,1) forwards;}
+    transform:scale(1.16); animation:introPhoto 4.4s cubic-bezier(.2,.6,.2,1) forwards;}
+  /* 숫자 커버 렉트 — 웹폰트 로드 후 숫자가 떠오르도록 FOUT 창을 가림 */
+  [data-opening] .io-veilrect{animation:introDigitsIn .6s ease .45s forwards;}
   /* 확대되는 층: 크림 판 + 뚫린 「10.11」 — 관객이 숫자 사이를 통과 */
   [data-opening] .io-zoom{position:absolute; inset:0; transform-origin:42% 50%; will-change:transform;
     animation:introZoom 1.6s cubic-bezier(.7,.02,.3,1) 1.4s forwards;}
@@ -105,7 +108,7 @@
 
   <!-- ============ OPENING INTRO (타이포 마스크 줌 · 숫자 속으로) ============ -->
   <div data-opening aria-hidden="true">
-    <img class="io-photo" src="assets/p08.jpg" alt="">
+    <img class="io-photo" src="assets/p26.jpg" alt="">
     <div class="io-zoom">
       <svg class="io-plate" viewBox="0 0 390 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -115,6 +118,7 @@
           </mask>
         </defs>
         <rect width="390" height="700" fill="#f7f2ec" mask="url(#io-cut)"/>
+        <rect class="io-veilrect" width="390" height="700" fill="#f7f2ec"/>
       </svg>
     </div>
     <div class="io-meta">
@@ -721,9 +725,9 @@ class Component extends DCLogic {
     const stage = root.querySelector('[data-stage]');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 판 소멸(2.55s)/베일 아웃(2.7s)과 맞출 것.
-    const PART_AT = 2600; // 숫자 통과 완료 = 흔들림 + 커버 등장
-    const END_AT  = 3450; // 베일 완전히 걷힘 = 오버레이 제거
+    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 판 소멸(2.55s)/베일 아웃(3.05s+1.4s)과 맞출 것.
+    const PART_AT = 3000; // 숫자 통과 완료(사진 풀스크린) = 흔들림 + 커버 등장
+    const END_AT  = 4500; // 베일 완전히 걷힘 = 오버레이 제거
 
     const el = document.documentElement;
     const prevOverflow = el.style.overflow;
