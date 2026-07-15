@@ -104,7 +104,7 @@
   @keyframes buddyBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
   .io-buddy-wrap{opacity:0; transform:translateY(16px); transition:opacity .8s ease, transform .9s cubic-bezier(.2,.7,.2,1);}
   .io-buddy-wrap.io-in{opacity:1; transform:translateY(0);}
-  .io-buddy{display:block; width:120px; height:auto; margin:0 auto; pointer-events:none; filter:drop-shadow(0 10px 14px rgba(60,46,28,.18));}
+  .io-buddy{display:block; width:auto; height:120px; margin:0 auto; pointer-events:none; filter:drop-shadow(0 10px 14px rgba(60,46,28,.18));}
   .io-buddy-wrap.io-in .io-buddy{animation:buddyBob 3.4s ease-in-out .6s infinite;}
   @media (prefers-reduced-motion: reduce){
     .io-buddy-wrap{transition:opacity .4s ease; transform:none;}
