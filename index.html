@@ -41,12 +41,11 @@
   /* ---- gallery opening intro v3: 타이포 마스크 줌 (숫자 속으로) ---- */
   @keyframes introFadeUp{from{opacity:0; transform:translateY(14px);}to{opacity:1; transform:translateY(0);}}
   @keyframes introMetaOut{to{opacity:0;}}
-  @keyframes introPhoto{from{transform:scale(1.16);}to{transform:scale(1.0);}}
+  @keyframes introPhoto{0%{transform:scale(1.5);}60%{transform:scale(1.44);}100%{transform:scale(1.0);}}
   @keyframes introZoom{to{transform:scale(30);}}
   @keyframes introPlateFade{to{opacity:0;}}
   @keyframes introDigitsIn{to{opacity:0;}}
-  @keyframes introPhotoOut{to{opacity:0;}}
-  @keyframes introBgOut{to{background:rgba(247,242,236,0);}}
+  @keyframes introVeilOut{to{opacity:0;}}
   @keyframes introArm{to{pointer-events:none;}}
   @keyframes introShake{
     10%{transform:translate(-3px,2px) rotate(-.4deg);} 20%{transform:translate(4px,-2px) rotate(.4deg);}
@@ -54,12 +53,12 @@
     65%{transform:translate(-2px,-1px) rotate(-.2deg);} 80%{transform:translate(2px,1px) rotate(.15deg);}
     100%{transform:translate(0,0) rotate(0);}
   }
-  /* ★ 타이밍 튜닝 지점(CSS): 숫자 등장=.45s, 줌 시작=1.4s, 판 소멸=2.55s, 배경 투명화=3.2s. JS PART_AT=3000/FLY_AT=3400/END_AT=4400과 맞출 것 */
+  /* ★ 타이밍 튜닝 지점(CSS): 숫자 등장=.45s, 줌 시작=1.4s, 판 소멸=2.55s, 베일 아웃=3.2s(1.2s간). JS PART_AT=3000/END_AT=4400과 맞출 것 */
   [data-opening]{position:fixed; inset:0; z-index:9999; background:#f7f2ec; overflow:hidden;
-    animation:introBgOut .4s ease 3.2s forwards, introArm .01s linear 4.5s forwards;}
-  /* 숫자 구멍 너머로 비치는 사진 — FLY_AT에 JS가 커버 액자 속으로 날려보냄(introPhotoOut은 JS 미동작 시 폴백) */
+    animation:introVeilOut 1.2s ease 3.2s forwards, introArm .01s linear 4.5s forwards;}
+  /* 숫자 구멍 너머로 비치는 사진 — 확대 상태에서 인트로 내내 서서히 멀어지며(1.5→1.0) 커버로 이어짐 */
   [data-opening] .io-photo{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    transform:scale(1.16); animation:introPhoto 4.4s cubic-bezier(.2,.6,.2,1) forwards, introPhotoOut .8s ease 3.6s forwards;}
+    transform:scale(1.5); animation:introPhoto 4.4s cubic-bezier(.25,.5,.25,1) forwards;}
   /* 숫자 커버 렉트 — 웹폰트 로드 후 숫자가 떠오르도록 FOUT 창을 가림 */
   [data-opening] .io-veilrect{animation:introDigitsIn .6s ease .45s forwards;}
   /* 확대되는 층: 크림 판 + 뚫린 「10.11」 — 관객이 숫자 사이를 통과 */
@@ -138,7 +137,7 @@
       <div data-reveal data-reveal-delay="80" data-tilt-parent style="perspective:900px; width:min(74vw,300px); margin-bottom:30px;">
         <div data-frame data-zoom data-tilt data-cap="「정원에서」 · 희정 ♥ 종호" data-img="assets/p08.jpg" style="background:#fff; padding:11px 11px 13px; border:1px solid #ddd0bc; box-shadow:0 26px 44px -22px rgba(60,46,28,.55); transform-style:preserve-3d; will-change:transform;">
           <div style="overflow:hidden;">
-            <img data-cover-photo src="assets/p08.jpg" alt="이종호 김희정 웨딩" style="width:100%; height:auto; aspect-ratio:2/3; object-fit:cover; display:block;">
+            <img src="assets/p08.jpg" alt="이종호 김희정 웨딩" style="width:100%; height:auto; aspect-ratio:2/3; object-fit:cover; display:block;">
           </div>
         </div>
       </div>
@@ -727,10 +726,9 @@ class Component extends DCLogic {
     const stage = root.querySelector('[data-stage]');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 판 소멸(2.55s)/배경 투명화(3.2s)와 맞출 것.
+    // ★ 타이밍 튜닝 지점(JS, ms). CSS의 판 소멸(2.55s)/베일 아웃(3.2s+1.2s)과 맞출 것.
     const PART_AT = 3000; // 숫자 통과 완료(사진 풀스크린) = 흔들림 + 커버 등장
-    const FLY_AT  = 3400; // 사진이 커버 액자 속으로 날아가는 시점
-    const END_AT  = 4400; // 착지 완료 = 오버레이 제거(액자 속 동일 사진으로 바통터치)
+    const END_AT  = 4400; // 베일 완전히 걷힘 = 오버레이 제거
 
     const el = document.documentElement;
     const prevOverflow = el.style.overflow;
@@ -764,38 +762,7 @@ class Component extends DCLogic {
     const part = () => { shake(); if (this._revealKick) this._revealKick(); };
 
     bind(window, 'wheel'); bind(window, 'touchmove'); bind(window, 'keydown'); bind(overlay, 'pointerdown');
-
-    // 풀스크린 사진을 커버 액자 속으로 날려보내는 FLIP — 착지 지점의 액자 사진과 동일 컷(p08)이라 바통터치가 티 안 남
-    const fly = () => {
-      if (done) return;
-      const photo = overlay.querySelector('.io-photo');
-      if (!photo) return;
-      const target = root.querySelector('[data-cover-photo]');
-      // 액자 래퍼가 리빌(translateY) 이동 중이면 착지 좌표가 어긋남 — 측정 전에 리빌을 즉시 완료시킴
-      const wrap = target && target.closest('[data-reveal]');
-      if (wrap) { wrap.style.transition = 'none'; wrap.style.transform = 'none'; wrap.style.opacity = '1'; }
-      const r = target && target.getBoundingClientRect();
-      photo.style.animation = 'none'; // CSS 폴백(introPhotoOut) 해제
-      photo.style.transform = 'none';
-      if (r && r.width > 0 && r.top < window.innerHeight) {
-        photo.style.inset = 'auto';
-        photo.style.left = '0px'; photo.style.top = '0px';
-        photo.style.width = window.innerWidth + 'px';
-        photo.style.height = window.innerHeight + 'px';
-        void photo.offsetWidth;
-        photo.style.transition = 'left .9s cubic-bezier(.2,.7,.2,1), top .9s cubic-bezier(.2,.7,.2,1), width .9s cubic-bezier(.2,.7,.2,1), height .9s cubic-bezier(.2,.7,.2,1)';
-        photo.style.left = r.left + 'px';
-        photo.style.top = r.top + 'px';
-        photo.style.width = r.width + 'px';
-        photo.style.height = r.height + 'px';
-      } else {
-        photo.style.transition = 'opacity .7s ease';
-        photo.style.opacity = '0';
-      }
-    };
-
     this._timers.push(setTimeout(part, PART_AT));
-    this._timers.push(setTimeout(fly, FLY_AT));
     this._timers.push(setTimeout(finish, END_AT));
     this._openingSkips = skips; // unmount 정리용
     this._openingSkipFn = onSkip;
