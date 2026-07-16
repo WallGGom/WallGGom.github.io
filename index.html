@@ -24,6 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/p08.jpg">
 <script src="./image-slot.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -53,28 +54,39 @@
     65%{transform:translate(-2px,-1px) rotate(-.2deg);} 80%{transform:translate(2px,1px) rotate(.15deg);}
     100%{transform:translate(0,0) rotate(0);}
   }
-  /* ★ 타이밍 튜닝 지점(CSS): 숫자 등장=.45s, 줌 시작=1.4s, 판 소멸=2.55s, 베일 아웃=3.2s(1.2s간). JS PART_AT=3000/END_AT=4400과 맞출 것 */
+  /* ★ 타이밍 튜닝 지점(CSS): .io-ready 부여 시점부터 — 숫자 등장=.45s, 줌 시작=1.4s, 판 소멸=2.55s, 베일 아웃=3.2s(1.2s간). JS PART_AT=3000/END_AT=4400과 맞출 것.
+     사진(p08) 로드 완료 후 JS가 .io-ready를 붙여야 인트로 시작. 로드 전엔 크림 화면 + 로딩 점 3개.
+     기본 상태의 12s 애니메이션은 JS 전멸 시에도 페이지가 열리게 하는 최후 안전장치. */
   [data-opening]{position:fixed; inset:0; z-index:9999; background:#f7f2ec; overflow:hidden;
-    animation:introVeilOut 1.2s ease 3.2s forwards, introArm .01s linear 4.5s forwards;}
+    animation:introVeilOut 1.2s ease 12s forwards, introArm .01s linear 13.2s forwards;}
+  [data-opening].io-ready{animation:introVeilOut 1.2s ease 3.2s forwards, introArm .01s linear 4.5s forwards;}
   /* 숫자 구멍 너머로 비치는 사진 — 확대 상태에서 인트로 내내 서서히 멀어지며(1.5→1.0) 커버로 이어짐 */
   [data-opening] .io-photo{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    transform:scale(1.5); animation:introPhoto 4.4s cubic-bezier(.25,.5,.25,1) forwards;}
+    transform:scale(1.5);}
+  [data-opening].io-ready .io-photo{animation:introPhoto 4.4s cubic-bezier(.25,.5,.25,1) forwards;}
   /* 숫자 커버 렉트 — 웹폰트 로드 후 숫자가 떠오르도록 FOUT 창을 가림 */
-  [data-opening] .io-veilrect{animation:introDigitsIn .6s ease .45s forwards;}
+  [data-opening].io-ready .io-veilrect{animation:introDigitsIn .6s ease .45s forwards;}
   /* 확대되는 층: 크림 판 + 뚫린 「10.11」 — 관객이 숫자 사이를 통과 */
-  [data-opening] .io-zoom{position:absolute; inset:0; transform-origin:42% 50%; will-change:transform;
-    animation:introZoom 1.6s cubic-bezier(.7,.02,.3,1) 1.4s forwards;}
-  [data-opening] .io-plate{position:absolute; inset:0; width:100%; height:100%; display:block;
-    animation:introPlateFade .45s ease 2.55s forwards;}
+  [data-opening] .io-zoom{position:absolute; inset:0; transform-origin:42% 50%; will-change:transform;}
+  [data-opening].io-ready .io-zoom{animation:introZoom 1.6s cubic-bezier(.7,.02,.3,1) 1.4s forwards;}
+  [data-opening] .io-plate{position:absolute; inset:0; width:100%; height:100%; display:block;}
+  [data-opening].io-ready .io-plate{animation:introPlateFade .45s ease 2.55s forwards;}
   /* 판 위 보조 타이포 — 줌 직전에 사라짐 */
-  [data-opening] .io-meta{position:absolute; inset:0; pointer-events:none; text-align:center;
-    animation:introMetaOut .35s ease 1.3s forwards;}
+  [data-opening] .io-meta{position:absolute; inset:0; pointer-events:none; text-align:center;}
+  [data-opening].io-ready .io-meta{animation:introMetaOut .35s ease 1.3s forwards;}
   [data-opening] .io-meta-top{position:absolute; left:0; right:0; top:26%; font-family:'Gothic A1',sans-serif;
-    font-weight:300; font-size:11px; letter-spacing:.46em; color:var(--accent,#b08d57); opacity:0;
-    animation:introFadeUp .7s ease .35s forwards;}
+    font-weight:300; font-size:11px; letter-spacing:.46em; color:var(--accent,#b08d57); opacity:0;}
+  [data-opening].io-ready .io-meta-top{animation:introFadeUp .7s ease .35s forwards;}
   [data-opening] .io-meta-bot{position:absolute; left:0; right:0; top:69%; font-family:'Gowun Batang',serif;
-    font-size:16px; letter-spacing:.06em; color:#5a5246; opacity:0;
-    animation:introFadeUp .7s ease .55s forwards;}
+    font-size:16px; letter-spacing:.06em; color:#5a5246; opacity:0;}
+  [data-opening].io-ready .io-meta-bot{animation:introFadeUp .7s ease .55s forwards;}
+  /* 로딩 점 3개 — 사진 준비 전까지만 */
+  @keyframes introDot{0%,80%,100%{opacity:.25; transform:scale(.8);}40%{opacity:1; transform:scale(1);}}
+  [data-opening] .io-load{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); display:flex; gap:9px;}
+  [data-opening] .io-load i{width:6px; height:6px; border-radius:50%; background:var(--accent,#b08d57); animation:introDot 1.2s ease-in-out infinite;}
+  [data-opening] .io-load i:nth-child(2){animation-delay:.15s;}
+  [data-opening] .io-load i:nth-child(3){animation-delay:.3s;}
+  [data-opening].io-ready .io-load{display:none;}
   [data-opening].io-done{display:none;}
   [data-stage].io-shake{animation:introShake .45s ease;}
   @media (prefers-reduced-motion: reduce){
@@ -126,6 +138,7 @@
       <div class="io-meta-top">OUR&nbsp;&nbsp;FIRST&nbsp;&nbsp;EXHIBITION</div>
       <div class="io-meta-bot">이종호 &amp; 김희정</div>
     </div>
+    <div class="io-load" aria-hidden="true"><i></i><i></i><i></i></div>
   </div>
 
   <div data-stage style="position:relative; z-index:1; max-width:680px; margin:0 auto;">
@@ -762,8 +775,24 @@ class Component extends DCLogic {
     const part = () => { shake(); if (this._revealKick) this._revealKick(); };
 
     bind(window, 'wheel'); bind(window, 'touchmove'); bind(window, 'keydown'); bind(overlay, 'pointerdown');
-    this._timers.push(setTimeout(part, PART_AT));
-    this._timers.push(setTimeout(finish, END_AT));
+
+    // 사진(p08) 준비 후 인트로 시작 — 준비 전엔 크림 화면 + 로딩 점. 타이머는 .io-ready 시점 기준.
+    const begin = () => {
+      if (done || overlay.classList.contains('io-ready')) return;
+      overlay.classList.add('io-ready');
+      this._timers.push(setTimeout(part, PART_AT));
+      this._timers.push(setTimeout(finish, END_AT));
+    };
+    const ph = overlay.querySelector('.io-photo');
+    if (ph && !ph.complete) {
+      const cap = setTimeout(begin, 6000); // 로드가 늦어도 6초엔 강제 시작
+      this._timers.push(cap);
+      const go = () => { clearTimeout(cap); begin(); };
+      ph.addEventListener('load', go, { once: true });
+      ph.addEventListener('error', go, { once: true });
+    } else {
+      begin();
+    }
     this._openingSkips = skips; // unmount 정리용
     this._openingSkipFn = onSkip;
   }
