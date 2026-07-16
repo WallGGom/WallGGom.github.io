@@ -37,6 +37,7 @@
   [data-wall]::-webkit-scrollbar{height:6px;}
   [data-wall]::-webkit-scrollbar-thumb{background:rgba(120,105,80,.3);border-radius:3px;}
   [data-wall]::-webkit-scrollbar-track{background:transparent;}
+  [data-frame]{-webkit-touch-callout:none; -webkit-user-select:none; user-select:none;}
   @keyframes floatHint{0%,100%{transform:translateY(0);opacity:.55;}50%{transform:translateY(7px);opacity:1;}}
   @keyframes grainShift{0%{transform:translate(0,0);}100%{transform:translate(-4%,-3%);}}
   /* ---- gallery opening intro v3: 타이포 마스크 줌 (숫자 속으로) ---- */
@@ -892,21 +893,47 @@ class Component extends DCLogic {
     window.addEventListener('pointerup', () => { down = false; wall.style.cursor = 'grab'; });
     wall._dragged = () => moved > 6;
 
-    // hover: straighten + lift (desktop) — feels like adjusting a hung frame
+    // hover(데스크톱) / 꾹 누르기(모바일): straighten + lift — feels like adjusting a hung frame
+    let suppressClickUntil = 0; // 홀드로 발동된 직후의 탭은 라이트박스로 안 이어지게
+    window.addEventListener('click', (e) => {
+      if (Date.now() < suppressClickUntil) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
     root.querySelectorAll('[data-frame][data-rot]').forEach((fr) => {
       const rot = fr.dataset.rot || '0';
-      fr.addEventListener('pointerenter', (e) => {
-        if (e.pointerType === 'touch') return;
+      const lift = () => {
         fr.style.position = 'relative';
         fr.style.zIndex = '3';
         fr.style.transform = 'rotate(0deg) translateY(-8px) scale(1.025)';
         fr.style.boxShadow = '0 34px 52px -22px rgba(60,46,28,.62)';
-      });
-      fr.addEventListener('pointerleave', () => {
+      };
+      const drop = () => {
         fr.style.transform = 'rotate(' + rot + 'deg)';
         fr.style.boxShadow = '0 22px 34px -20px rgba(60,46,28,.5)';
         fr.style.zIndex = '';
+      };
+      fr.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') lift(); });
+      fr.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') drop(); });
+
+      // 터치: 180ms 홀드로 발동, 8px 이상 움직이면(스크롤 제스처) 취소
+      let holdTimer = null, held = false, sx = 0, sy = 0;
+      const clearHold = () => { if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; } };
+      const release = () => {
+        clearHold();
+        if (held) { held = false; suppressClickUntil = Date.now() + 400; drop(); }
+      };
+      fr.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'touch') return;
+        sx = e.clientX; sy = e.clientY; held = false;
+        clearHold();
+        holdTimer = setTimeout(() => { holdTimer = null; held = true; lift(); }, 180);
       });
+      fr.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'touch' || held) return;
+        if (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8) clearHold();
+      });
+      fr.addEventListener('pointerup', release);
+      fr.addEventListener('pointercancel', release);
+      fr.addEventListener('contextmenu', (e) => { if (held) e.preventDefault(); });
     });
 
     const pStrength = () => (this.props.parallaxStrength != null ? this.props.parallaxStrength : 10);
