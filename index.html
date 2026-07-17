@@ -61,7 +61,7 @@
   /* ★ 타이밍 튜닝 지점(CSS): .io-ready 부여 시점부터 — 숫자 등장=.45s, 줌 시작=1.4s, 판 소멸=2.55s, 베일 아웃=3.2s(1.2s간). JS PART_AT=3000/END_AT=4400과 맞출 것.
      사진(p08) 로드 완료 후 JS가 .io-ready를 붙여야 인트로 시작. 로드 전엔 크림 화면 + 로딩 점 3개.
      기본 상태의 12s 애니메이션은 JS 전멸 시에도 페이지가 열리게 하는 최후 안전장치. */
-  [data-opening]{position:fixed; inset:0; z-index:9999; background:#f7f2ec; overflow:hidden;
+  [data-opening]{position:fixed; inset:0; z-index:80; background:#f7f2ec; overflow:hidden;
     animation:introVeilOut 1.2s ease 12s forwards, introArm .01s linear 13.2s forwards;}
   [data-opening].io-ready{animation:introVeilOut 1.2s ease 3.2s forwards, introArm .01s linear 4.5s forwards;}
   /* 숫자 구멍 너머로 비치는 사진 — 확대 상태에서 인트로 내내 서서히 멀어지며(1.5→1.0) 커버로 이어짐 */
@@ -1135,7 +1135,7 @@ class Component extends DCLogic {
       if (!el) {
         el = document.createElement('div');
         el.setAttribute('data-gb-toast', '');
-        el.style.cssText = "position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(14px); z-index:9998; background:#2e2a24; color:#f4efe7; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12.5px; letter-spacing:.02em; padding:11px 20px; border-radius:999px; box-shadow:0 14px 34px -12px rgba(0,0,0,.55); white-space:nowrap; opacity:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); pointer-events:none;";
+        el.style.cssText = "position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(14px); z-index:70; background:#2e2a24; color:#f4efe7; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12.5px; letter-spacing:.02em; padding:11px 20px; border-radius:999px; box-shadow:0 14px 34px -12px rgba(0,0,0,.55); white-space:nowrap; opacity:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); pointer-events:none;";
         root.appendChild(el);
       }
       el.innerHTML = html;
@@ -1297,7 +1297,7 @@ class Component extends DCLogic {
       if (!el) {
         el = document.createElement('div');
         el.setAttribute('data-gb-toast', '');
-        el.style.cssText = "position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(14px); z-index:9998; background:#2e2a24; color:#f4efe7; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12.5px; letter-spacing:.02em; padding:11px 20px; border-radius:999px; box-shadow:0 14px 34px -12px rgba(0,0,0,.55); white-space:nowrap; opacity:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); pointer-events:none;";
+        el.style.cssText = "position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(14px); z-index:70; background:#2e2a24; color:#f4efe7; font-family:'Gothic A1',sans-serif; font-weight:300; font-size:12.5px; letter-spacing:.02em; padding:11px 20px; border-radius:999px; box-shadow:0 14px 34px -12px rgba(0,0,0,.55); white-space:nowrap; opacity:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); pointer-events:none;";
         root.appendChild(el);
       }
       el.innerHTML = html;
