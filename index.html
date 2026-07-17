@@ -523,7 +523,11 @@
         </div>
         <div style="display:flex; gap:12px;">
           <span style="flex:0 0 60px; font-weight:500; color:var(--accent,#b08d57); letter-spacing:.08em;">대중교통</span>
-          <span style="flex:1; word-break:keep-all;">1호선 아양교역 하차 > 802번 버스 환승 > 망우공원건너 하차 > 도보 7분<br/>2호선 만촌역 하자 > 848번 버스 환승 > 인터불고호텔앞 하차 > 도보 1분<br/>동대구역복합환승센터건너 651번 승차 > 인터불고호텔앞 하차 > 도보 1분</span>
+          <span style="flex:1; word-break:keep-all;">
+            <span style="display:block; margin-bottom:7px;"><b style="font-weight:500; color:#4a4338;">1호선</b> 아양교역 → 802번 버스 → 망우공원건너 · 도보 7분</span>
+            <span style="display:block; margin-bottom:7px;"><b style="font-weight:500; color:#4a4338;">2호선</b> 만촌역 → 848번 버스 → 인터불고호텔앞 · 도보 1분</span>
+            <span style="display:block;"><b style="font-weight:500; color:#4a4338;">동대구역</b> 651번 버스 → 인터불고호텔앞 · 도보 1분</span>
+          </span>
         </div>
       </div>
 
@@ -731,10 +735,12 @@ class Component extends DCLogic {
     };
     const check = () => {
       const vh = window.innerHeight || document.documentElement.clientHeight;
+      // 페이지 끝까지 내려오면 화면에 걸친 요소는 전부 리빌 — 맨 아래 요소가 0.92 문턱을 영영 못 넘는 문제 방지
+      const atBottom = window.scrollY + vh >= document.documentElement.scrollHeight - 4;
       items.forEach((el) => {
         if (el._revealed) return;
         const r = el.getBoundingClientRect();
-        if (r.top < vh * 0.92 && r.bottom > -40) reveal(el);
+        if ((r.top < vh * 0.92 || (atBottom && r.top < vh)) && r.bottom > -40) reveal(el);
       });
     };
     let ticking = false;
