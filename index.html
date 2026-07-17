@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -26,9 +28,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Gowun+Batang:wght@400;700&family=Gothic+A1:wght@200;300;400;500;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="assets/p08.jpg">
-<script src="./image-slot.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   *{box-sizing:border-box;}
   html{scrollbar-gutter:stable;}
@@ -1197,7 +1196,7 @@ class Component extends DCLogic {
           }
         };
         if (col) {
-          // serverTimestamp 센티널은 firebase 이중 로드 시 사본 불일치로 거부됨 — 클라이언트 시각 숫자로 저장
+          // createdAt은 클라이언트 시각 숫자 — 기존 저장 문서와 타입 일관성 유지
           col.add({ name: name.slice(0, 12), count: n, createdAt: Date.now() })
             .then(() => done(true)).catch(() => done(false));
         } else {
