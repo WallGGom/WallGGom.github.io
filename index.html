@@ -38,6 +38,7 @@
   [data-wall]::-webkit-scrollbar-thumb{background:rgba(120,105,80,.3);border-radius:3px;}
   [data-wall]::-webkit-scrollbar-track{background:transparent;}
   [data-frame]{-webkit-touch-callout:none; -webkit-user-select:none; user-select:none;}
+  [data-gb-tpl]::-webkit-scrollbar{display:none;}
   @keyframes floatHint{0%,100%{transform:translateY(0);opacity:.55;}50%{transform:translateY(7px);opacity:1;}}
   @keyframes grainShift{0%{transform:translate(0,0);}100%{transform:translate(-4%,-3%);}}
   /* ---- gallery opening intro v3: 타이포 마스크 줌 (숫자 속으로) ---- */
@@ -607,6 +608,13 @@
 
       <div data-reveal data-reveal-delay="60" style="background:#fbf8f2; border:1px solid #e0d6c4; padding:18px;">
         <input data-gb-name type="text" maxlength="12" placeholder="이름" style="width:100%; box-sizing:border-box; padding:11px 13px; border:1px solid #ddd0bc; background:#fff; font-family:'Gothic A1'; font-weight:300; font-size:13px; color:#2e2a24; outline:none; margin-bottom:9px;">
+        <div data-gb-tpl style="display:flex; gap:7px; overflow-x:auto; padding:1px 1px 9px; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
+          <button type="button" style="flex:0 0 auto; padding:7px 12px; border:1px solid #ddd0bc; border-radius:99px; background:#fff; cursor:pointer; font-family:'Gothic A1'; font-weight:300; font-size:11.5px; color:#5a5246; white-space:nowrap;">💐 결혼 축하해요! 앞날에 행복만 가득하길</button>
+          <button type="button" style="flex:0 0 auto; padding:7px 12px; border:1px solid #ddd0bc; border-radius:99px; background:#fff; cursor:pointer; font-family:'Gothic A1'; font-weight:300; font-size:11.5px; color:#5a5246; white-space:nowrap;">🖼️ 두 사람의 첫 전시, 개관을 축하합니다</button>
+          <button type="button" style="flex:0 0 auto; padding:7px 12px; border:1px solid #ddd0bc; border-radius:99px; background:#fff; cursor:pointer; font-family:'Gothic A1'; font-weight:300; font-size:11.5px; color:#5a5246; white-space:nowrap;">🤍 세상에서 제일 예쁜 부부가 되세요</button>
+          <button type="button" style="flex:0 0 auto; padding:7px 12px; border:1px solid #ddd0bc; border-radius:99px; background:#fff; cursor:pointer; font-family:'Gothic A1'; font-weight:300; font-size:11.5px; color:#5a5246; white-space:nowrap;">⚾ 최강 부부 탄생! 평생 응원합니다</button>
+          <button type="button" style="flex:0 0 auto; padding:7px 12px; border:1px solid #ddd0bc; border-radius:99px; background:#fff; cursor:pointer; font-family:'Gothic A1'; font-weight:300; font-size:11.5px; color:#5a5246; white-space:nowrap;">💛 오래오래 알콩달콩 행복하세요</button>
+        </div>
         <textarea data-gb-msg rows="3" maxlength="120" placeholder="축하 메시지를 남겨주세요" style="width:100%; box-sizing:border-box; padding:11px 13px; border:1px solid #ddd0bc; background:#fff; font-family:'Gothic A1'; font-weight:300; font-size:13px; line-height:1.6; color:#2e2a24; outline:none; resize:none;"></textarea>
         <button data-gb-submit type="button" style="width:100%; margin-top:10px; padding:13px 0; border:none; background:var(--accent,#b08d57); color:#fff; cursor:pointer; font-family:'Gothic A1'; font-weight:400; font-size:13px; letter-spacing:.1em;">방명록 남기기</button>
       </div>
@@ -1084,6 +1092,11 @@ class Component extends DCLogic {
     const msgEl = root.querySelector('[data-gb-msg]');
     const submit = root.querySelector('[data-gb-submit]');
     const list = root.querySelector('[data-gb-list]');
+
+    // 템플릿 칩: 클릭 한 번으로 메시지 채움 (칩 문구가 곧 입력 내용)
+    root.querySelectorAll('[data-gb-tpl] button').forEach((b) => {
+      b.addEventListener('click', () => { msgEl.value = b.textContent.trim(); msgEl.focus(); });
+    });
     const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmtDate = (d) => d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
     const emptyHtml = '<div style="text-align:center; padding:26px 0; font-family:\'Gothic A1\'; font-weight:300; font-size:12.5px; color:#b3a691;">아직 남겨진 메시지가 없어요.<br>첫 번째 축하를 남겨주세요 ♥</div>';
