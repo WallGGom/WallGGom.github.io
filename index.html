@@ -956,7 +956,6 @@ class Component extends DCLogic {
     if (!wall) return;
     let down = false, startX = 0, startScroll = 0, moved = 0;
     wall.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('image-slot')) return; // let slot handle its own clicks
       down = true; moved = 0; startX = e.clientX; startScroll = wall.scrollLeft;
       wall.style.cursor = 'grabbing';
     });
