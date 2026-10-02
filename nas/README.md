@@ -25,7 +25,7 @@
 1. 제어판 → 공유 폴더 → 생성 → 이름 `wedding-guests`
 2. 같은 화면 → 편집 → 고급 → **공유 폴더 할당량** 켜고 전체 상한 입력 (예: 200GB)
    - 항목이 안 보이면 볼륨이 ext4 다. 대신 4번에서 만든 `wedding-upload` 사용자 → 편집 → 할당량에서 같은 값을 건다.
-3. 공유폴더가 `/volume1` 이 아닌 볼륨에 있으면 `docker-compose.yml` 의 `/volume1/wedding-guests` 를 고친다.
+3. 제어판 → 공유 폴더 목록의 "위치"(볼륨 번호)가 `docker-compose.yml` 의 `/volume2/wedding-guests` 와 같아야 한다. 다르면 compose 쪽 번호를 고친다.
 4. **업로드 전용 계정** — 컨테이너가 이 계정 권한으로 돈다. 뚫려도 `wedding-guests` 밖은 못 건드린다.
    - 제어판 → 사용자 및 그룹 → 생성 → 이름 `wedding-upload`, 긴 무작위 비밀번호 (로그인할 일 없음)
    - 그룹: `users` 만 (`administrators` 금지)
