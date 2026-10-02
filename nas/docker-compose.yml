@@ -1,0 +1,24 @@
+services:
+  tusd:
+    build: .
+    restart: unless-stopped
+    # DSM 전용 계정 wedding-upload 의 UID:GID (README 1단계). 바꾸기 전엔 일부러 실행이 실패한다.
+    user: "CHANGE_ME_UID:100"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "127.0.0.1:18080:8080"   # DSM 리버스 프록시만 붙는다
+    volumes:
+      - /volume1/wedding-guests:/data
+    command:
+      - -upload-dir=/data/.incoming
+      - -hooks-dir=/srv/tusd-hooks
+      - -hooks-enabled-events=pre-create,post-finish
+      - -max-size=2147483648     # 파일당 2GB
+      - -behind-proxy
+      - -disable-download
+      - -disable-termination
+      - -expose-metrics=false
+      - -show-greeting=false
+      - -cors-allow-origin=^https://(www\.)?hjh-wedding\.site$

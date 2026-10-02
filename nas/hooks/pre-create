@@ -1,0 +1,13 @@
+#!/bin/sh
+# 사진·동영상만 받는다. 파일당 크기 상한은 tusd -max-size 가 건다.
+exec jq -c '
+  .Event.Upload as $u
+  | ($u.MetaData.filetype // "") as $t
+  | ($u.MetaData.filename // "" | ascii_downcase) as $n
+  | if $u.SizeIsDeferred or $u.Size <= 0 then
+      {RejectUpload: true, HTTPResponse: {StatusCode: 400, Body: "size required"}}
+    elif ($t | test("^(image|video)/")) or ($n | test("\\.(jpe?g|png|gif|webp|heic|heif|dng|mov|mp4|m4v|3gp|avi|mkv|webm)$")) then
+      {}
+    else
+      {RejectUpload: true, HTTPResponse: {StatusCode: 415, Body: "media only"}}
+    end'

@@ -1,0 +1,18 @@
+#!/bin/sh
+# 다 받은 파일을 .incoming 에서 공유폴더 루트로 옮긴다: 20261011-143022_홍길동_a1b2c3_IMG_1234.HEIC
+# 실패해도 파일은 .incoming 에 그대로 남는다 (tusd 로그에만 에러가 찍힘).
+set -eu
+in=$(cat)
+ts=$(TZ=KST-9 date +%Y%m%d-%H%M%S)
+src=$(printf '%s' "$in" | jq -r '.Event.Upload.Storage.Path')
+info=$(printf '%s' "$in" | jq -r '.Event.Upload.Storage.InfoPath')
+name=$(printf '%s' "$in" | jq -r --arg ts "$ts" '
+  def clean: gsub("[/\\\\:*?\"<>|[:cntrl:]]"; "_") | sub("^[.\\s]+"; "");
+  .Event.Upload as $u
+  | [$ts,
+     ($u.MetaData.name // "" | clean | .[0:20]),
+     $u.ID[0:6],
+     ($u.MetaData.filename // "file" | clean | .[-80:])]
+  | map(select(. != "")) | join("_")')
+mv "$src" "/data/$name"
+rm -f "$info"

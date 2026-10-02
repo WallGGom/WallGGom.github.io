@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사진 보내기 · 이종호 ♥ 김희정</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💍</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400&family=Gothic+A1:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js" integrity="sha384-UlHjK3F7TCQCEUpnoa1ohMbP2oaWB3Aypv4gMo511vaZ86uUZ0Zv7UzZ0J1zRUT1" crossorigin="anonymous"></script>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{min-height:100svh; background:#f7f2ec; font-family:'Gothic A1',sans-serif; color:#2e2a24;}
+  ::selection{background:#b08d57; color:#fff;}
+  :focus-visible{outline:2px solid #2e2a24; outline-offset:2px;}
+  main{max-width:480px; margin:0 auto; padding:28px 30px 72px;}
+  .back{display:inline-block; padding:10px 0; font-weight:300; font-size:12px; color:#7a6d5b; text-decoration:none;}
+  .head{text-align:center; margin:34px 0 26px;}
+  .label{font-weight:300; font-size:11px; letter-spacing:.4em; color:#b08d57;}
+  h1{margin:12px 0 0; font-family:'Gowun Batang',serif; font-weight:400; font-size:26px; letter-spacing:-.01em;}
+  .rule{width:30px; height:1px; background:#b08d57; margin:17px auto 14px;}
+  .lead{font-weight:300; font-size:12.5px; color:#7a6d5b; line-height:1.8; word-break:keep-all;}
+  .card{background:#fbf8f2; border:1px solid #e0d6c4; padding:18px;}
+  input[type=text]{width:100%; padding:13px; border:1px solid #ddd0bc; background:#fff; font-family:'Gothic A1'; font-weight:300; font-size:13px; color:#2e2a24; outline:none;}
+  button{width:100%; cursor:pointer; font-family:'Gothic A1'; font-size:13px;}
+  .pick{margin-top:9px; padding:14px 15px; border:1px solid #d8cbb2; background:#fff; color:#6b6253;}
+  .send{margin-top:10px; padding:15px 0; border:none; background:#b08d57; color:#fff; font-weight:400; letter-spacing:.1em;}
+  button:disabled{opacity:.45; cursor:default;}
+  .note{margin-top:11px; text-align:center; font-weight:300; font-size:11px; color:#7a6d5b; line-height:1.7; word-break:keep-all;}
+  ul{list-style:none; margin:12px 0 0; padding:0;}
+  ul:empty{display:none;}
+  li{padding:10px 0 9px; border-bottom:1px solid #e9e0d0;}
+  .row{display:flex; justify-content:space-between; gap:10px; font-weight:300; font-size:12px;}
+  .name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#4a4338;}
+  .st{flex:0 0 auto; color:#7a6d5b;}
+  li.fail .st, li.skip .st{color:#2e2a24; font-weight:400;}
+  .bar{height:2px; margin-top:7px; background:#ece3d3;}
+  .bar i{display:block; height:100%; width:0; background:#b08d57; transition:width .2s linear;}
+  .msg{display:none; margin-top:12px; font-weight:300; font-size:12px; line-height:1.7; color:#4a4338; text-align:center; word-break:keep-all;}
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← 청첩장으로</a>
+  <div class="head">
+    <div class="label">GUEST&nbsp;COLLECTION</div>
+    <h1>그날의 사진을 보내주세요</h1>
+    <div class="rule"></div>
+    <div class="lead">찍어주신 사진과 영상을 원본 그대로 보내주세요.<br>두 사람의 도록에 소중히 담겠습니다.</div>
+  </div>
+  <div class="card">
+    <input id="who" type="text" maxlength="12" placeholder="이름 (선택)" autocomplete="name">
+    <input id="files" type="file" multiple accept="image/*,video/*" hidden>
+    <button id="pick" class="pick" type="button">사진 · 영상 고르기</button>
+    <ul id="list" aria-live="polite"></ul>
+    <button id="send" class="send" type="button" disabled>보내기</button>
+    <div id="msg" class="msg" role="status"></div>
+    <div class="note">파일당 2GB까지 보낼 수 있어요.<br>보내는 동안 화면을 켜 두세요.</div>
+  </div>
+</main>
+<script>
+const ENDPOINT = location.hostname === 'localhost'
+  ? 'http://127.0.0.1:18080/files/'
+  : 'https://photos.hjh-wedding.site/files/';
+const MAX = 2 * 1024 ** 3; // nas/docker-compose.yml 의 -max-size 와 같아야 한다
+const CHUNK = 10 * 1024 ** 2; // 끊기면 최대 이만큼만 다시 보낸다
+
+const $ = (id) => document.getElementById(id);
+const items = [];
+let sending = false;
+
+const mb = (n) => (n / 1024 ** 2).toFixed(n < 10 * 1024 ** 2 ? 1 : 0) + 'MB';
+
+function setState(it, state, text) {
+  it.state = state;
+  it.li.className = state;
+  it.st.textContent = text;
+}
+
+function refresh() {
+  const left = items.filter((it) => it.state === 'ready' || it.state === 'fail').length;
+  $('send').disabled = sending || !left;
+  $('send').textContent = sending ? '보내는 중…' : left ? `보내기 (${left}개)` : '보내기';
+  $('pick').disabled = sending;
+}
+
+$('pick').onclick = () => $('files').click();
+
+$('files').onchange = (e) => {
+  for (const file of e.target.files) {
+    const li = document.createElement('li');
+    li.innerHTML = '<div class="row"><span class="name"></span><span class="st"></span></div><div class="bar"><i></i></div>';
+    li.querySelector('.name').textContent = file.name;
+    const it = { file, li, st: li.querySelector('.st'), bar: li.querySelector('i') };
+    if (file.size > MAX) setState(it, 'skip', '2GB 초과');
+    else setState(it, 'ready', mb(file.size));
+    items.push(it);
+    $('list').append(li);
+  }
+  e.target.value = '';
+  $('msg').style.display = 'none';
+  refresh();
+};
+
+function upload(it) {
+  return new Promise((resolve) => {
+    const up = new tus.Upload(it.file, {
+      endpoint: ENDPOINT,
+      chunkSize: CHUNK,
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000],
+      removeFingerprintOnSuccess: true,
+      metadata: { filename: it.file.name, filetype: it.file.type, name: $('who').value.trim() },
+      onProgress(sent, total) {
+        const pct = Math.floor((sent / total) * 100);
+        it.bar.style.width = pct + '%';
+        it.st.textContent = pct + '%';
+      },
+      onSuccess() {
+        it.bar.style.width = '100%';
+        setState(it, 'done', '보냄');
+        resolve();
+      },
+      onError(err) {
+        const code = err.originalResponse && err.originalResponse.getStatus();
+        if (code === 415) setState(it, 'skip', '사진·영상만 가능');
+        else if (code === 413) setState(it, 'skip', '2GB 초과');
+        else setState(it, 'fail', '실패 · 다시 보내기');
+        resolve();
+      },
+    });
+    setState(it, 'sending', '0%');
+    // 새로고침·재시도해도 받은 데까지는 건너뛴다
+    up.findPreviousUploads().then((prev) => {
+      if (prev.length) up.resumeFromPreviousUpload(prev[0]);
+      up.start();
+    });
+  });
+}
+
+$('send').onclick = async () => {
+  sending = true;
+  refresh();
+  let lock = null;
+  try { lock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  for (const it of items) {
+    if (it.state === 'ready' || it.state === 'fail') await upload(it);
+  }
+  if (lock) lock.release().catch(() => {});
+  sending = false;
+  refresh();
+
+  const done = items.filter((it) => it.state === 'done').length;
+  const failed = items.filter((it) => it.state === 'fail').length;
+  $('msg').textContent = failed
+    ? `${failed}개를 보내지 못했어요. 연결이 좋은 곳에서 보내기를 다시 눌러주세요. 받은 데까지는 이어서 보내요.`
+    : `고맙습니다. ${done}개가 잘 도착했어요.`;
+  $('msg').style.display = 'block';
+};
+
+addEventListener('beforeunload', (e) => {
+  if (sending) e.preventDefault();
+});
+</script>
+</body>
+</html>
