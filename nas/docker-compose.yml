@@ -10,7 +10,7 @@ services:
     ports:
       - "127.0.0.1:18080:8080"   # DSM 리버스 프록시만 붙는다
     volumes:
-      - /volume1/wedding-guests:/data
+      - /volume2/wedding-guests:/data
     command:
       - -upload-dir=/data/.incoming
       - -hooks-dir=/srv/tusd-hooks
