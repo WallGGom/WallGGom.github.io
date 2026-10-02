@@ -2,8 +2,8 @@ services:
   tusd:
     build: .
     restart: unless-stopped
-    # DSM 전용 계정 wedding-upload 의 UID:GID (README 1단계). 바꾸기 전엔 일부러 실행이 실패한다.
-    user: "CHANGE_ME_UID:100"
+    # DSM 전용 계정 wedding-upload 의 UID:GID (README 1-5, id wedding-upload 로 확인)
+    user: "1029:100"
     read_only: true
     security_opt:
       - no-new-privileges:true
